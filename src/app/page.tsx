@@ -13,7 +13,7 @@ const colors = ["black", "white"]
 
 type Board = number[][];
 function createBoard() : Board {
-  return Array.from({length: num_rows}, ()=> new Array(num_rows).fill(0));
+  return Array.from({length: num_rows}, ()=> new Array(num_cols).fill(0));
 }
 
 
@@ -23,8 +23,20 @@ export default function Home() {
   const initialBoard = createBoard();
   const [boardState, setBoardState] = useState<Board>(initialBoard);
 
+  const [isPlaying, setIsPlaying] = useState(false);
+
   const canvasRef = useRef<null | HTMLCanvasElement>(null);
 
+
+  useEffect(() => {
+    if(!isPlaying) {
+      return;
+    }
+    
+    const interval = setInterval(computeNextBoard, 100)
+    return () => clearInterval(interval)
+
+  }, [isPlaying, computeNextBoard])
 
   useEffect(() => {
     if(canvasRef.current) {
@@ -64,12 +76,61 @@ export default function Home() {
   }, [boardState, canvasRef])
 
 
-  function computeNextBoard() {
+  function countNeighours(r0:number, c0:number){
+    // count alive around the row and the column entered
     
+    let count = 0;
+    
+    for (let dr = -1; dr <= 1; ++dr) {
+      for (let dc = -1; dc <= 1; ++dc) {
+        if (dr != 0 || dc != 0) {
+          const r = (r0 + dr + num_rows) % num_rows
+          const c = (c0 + dc + num_cols) % num_cols
+
+          if(boardState[r][c] === 1) {
+            ++count;
+          }
+        }
+
+      }
+    }
+
+    return count;
+  }
+
+
+  function computeNextBoard() {
+    setBoardState((prevBoardState) => {
+
+      const newBoard = prevBoardState.map((r) => [...r])
+      
+      
+      for(let r = 0; r < num_rows; ++r) {
+        for(let c = 0; c < num_cols; ++c) {
+          const alivecount = countNeighours(r, c);
+          if (prevBoardState[r][c] === 0 ) {
+            if (alivecount === 3) {
+              newBoard[r][c] = 1;
+            }
+
+          } else {
+            if (alivecount !== 3 && alivecount !== 2) {
+              newBoard[r][c] = 0;
+            } 
+          }
+        }
+      }
+      
+
+      return newBoard;
+    })
   }
   
 
-
+  function resetBoard() {
+    const board = createBoard();
+    setBoardState(board);
+  }
 
 
 
@@ -80,6 +141,11 @@ export default function Home() {
         <h1>Game of Life</h1>
         <div>
           <button onClick={computeNextBoard}>Next</button>
+          <button onClick={resetBoard}>Reset</button>
+          <button onClick={() => setIsPlaying(!isPlaying)}>
+            {isPlaying ? "Stop" : "Play"}
+          </button>
+
         </div>
       </header>
 
