@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import data from "../private/saves/data.json"; // pour la data
+
 
 const width = 800;
 const height = 800;
@@ -132,7 +134,9 @@ export default function Home() {
     setBoardState(board);
   }
 
-
+  function saveBoard() {
+    console.log(boardState)
+  }
 
 
   return (
@@ -145,6 +149,7 @@ export default function Home() {
           <button onClick={() => setIsPlaying(!isPlaying)}>
             {isPlaying ? "Stop" : "Play"}
           </button>
+          <button onClick={saveBoard}>Save board</button>
 
         </div>
       </header>
@@ -173,6 +178,9 @@ export default function Home() {
           height={height}
           className="board" 
         ></canvas>
+        <div>
+
+        </div>
       </main>
     </div>
   );
